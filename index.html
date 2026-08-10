@@ -69,6 +69,18 @@
         let lastPlayedTime = {};
         const COOLDOWN_MS = 2000; 
 
+        // ★ 한글 텍스트에 맞는 영어 파일명을 연결해주는 객체
+        const audioFiles = {
+            '안녕하세요': 'hello',
+            '저는': 'iam',
+            '제 이름은': 'myname',
+            '입니다': 'imnida',
+            '개발자': 'developer',
+            'PM': 'pm',
+            '마케터': 'marketer',
+            '디자이너': 'designer'
+        };
+
         function getDistance(p1, p2) {
             return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
         }
@@ -97,14 +109,17 @@
             }
             lastPlayedTime[text] = now;
             
-            const audio = new Audio(`${text}.m4a`);
+            // ★ 영어 파일명으로 변환하여 오디오 로드
+            const fileName = audioFiles[text];
+            if (!fileName) return; // 파일명이 없으면 종료
+
+            const audio = new Audio(`${fileName}.m4a`);
             
-            // ★ 왼쪽 손 제시어들의 볼륨을 0.8로 조절
             const lowerVolumeTexts = ['개발자', 'PM', '마케터', '디자이너'];
             if (lowerVolumeTexts.includes(text)) {
-                audio.volume = 0.8; // 80% 크기
+                audio.volume = 0.8; 
             } else {
-                audio.volume = 1.0; // 100% 크기 (기본값)
+                audio.volume = 1.0; 
             }
 
             audio.play().catch(e => {
