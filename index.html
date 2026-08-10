@@ -67,9 +67,10 @@
         const STABILIZE_TIME_MS = 250; 
 
         let lastPlayedTime = {};
-        const COOLDOWN_MS = 2000; 
+        
+        // ★ 쿨타임을 기존 2000(2초)에서 500(0.5초)으로 단축하여 반응 속도 향상!
+        const COOLDOWN_MS = 500; 
 
-        // ★ 한글 텍스트에 맞는 영어 파일명을 연결해주는 객체
         const audioFiles = {
             '안녕하세요': 'hello',
             '저는': 'iam',
@@ -109,9 +110,8 @@
             }
             lastPlayedTime[text] = now;
             
-            // ★ 영어 파일명으로 변환하여 오디오 로드
             const fileName = audioFiles[text];
-            if (!fileName) return; // 파일명이 없으면 종료
+            if (!fileName) return; 
 
             const audio = new Audio(`${fileName}.m4a`);
             
