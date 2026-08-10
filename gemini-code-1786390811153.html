@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>양손 인식 텍스트 & 파도 & 음성 효과</title>
+    
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: #000000; 
+            font-family: 'Pretendard', sans-serif;
+            overflow: hidden; 
+        }
+        video { display: none; } 
+        canvas { 
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover; 
+        }
+        #audio-hint {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 10;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+    
+    <div id="audio-hint">🔊 소리 재생을 위해 화면을 한 번 클릭해 주세요</div>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" width="1280" height="720"></canvas>
+
+    <script>
+        document.body.addEventListener('click', () => {
+            document.getElementById('audio-hint').style.opacity = '0';
+        });
+
+        const videoElement = document.getElementById('video');
+        const canvasElement = document.getElementById('canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+
+        const MINT_COLOR = '#33FFBB'; 
+        const TIP_CIRCLE_RADIUS = 4;
+
+        let wave = { active: false, progress: 0, opacity: 0 };
+        let wasBothHandsOpen = false;
+
+        let gestureTracking = {
+            'Right': { currentRaw: '', stabilized: '', startTime: 0 },
+            'Left': { currentRaw: '', stabilized: '', startTime: 0 }
+        };
+        const STABILIZE_TIME_MS = 250; 
+
+        let lastPlayedTime = {};
+        const COOLDOWN_MS = 2000; 
+
+        function getDistance(p1, p2) {
+            return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        }
+
+        function checkFingers(landmarks) {
+            const isThumbOpen = getDistance(landmarks[4], landmarks[17]) > getDistance(landmarks[3], landmarks[17]);
+            const isIndexOpen = landmarks[8].y < landmarks[6].y;
+            const isMiddleOpen = landmarks[12].y < landmarks[10].y;
+            const isRingOpen = landmarks[16].y < landmarks[14].y;
+            const isPinkyOpen = landmarks[20].y < landmarks[18].y;
+
+            return { isThumbOpen, isIndexOpen, isMiddleOpen, isRingOpen, isPinkyOpen };
+        }
+
+        function drawMintCircle(ctx, x, y, radius) {
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = MINT_COLOR;
+            ctx.fill();
+        }
+
+        function playAudio(text) {
+            const now = Date.now();
+            if (lastPlayedTime[text] && (now - lastPlayedTime[text] < COOLDOWN_MS)) {
+                return;
+            }
+            lastPlayedTime[text] = now;
+            
+            const audio = new Audio(`${text}.m4a`);
+            
+            // ★ 왼쪽 손 제시어들의 볼륨을 0.8로 조절
+            const lowerVolumeTexts = ['개발자', 'PM', '마케터', '디자이너'];
+            if (lowerVolumeTexts.includes(text)) {
+                audio.volume = 0.8; // 80% 크기
+            } else {
+                audio.volume = 1.0; // 100% 크기 (기본값)
+            }
+
+            audio.play().catch(e => {
+                console.log("오디오 재생 실패:", e);
+            });
+        }
+
+        const hands = new Hands({
+            locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+        
+        hands.setOptions({
+            maxNumHands: 2,           
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7, 
+            minTrackingConfidence: 0.7
+        });
+
+        hands.onResults((results) => {
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            
+            canvasCtx.save();
+            canvasCtx.scale(-1, 1);
+            canvasCtx.translate(-canvasElement.width, 0);
+            canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.restore();
+
+            let fullOpenHandsCount = 0; 
+            const now = Date.now();
+
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                
+                for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                    const landmarks = results.multiHandLandmarks[i];
+                    const handedness = results.multiHandedness[i].label; 
+                    const fingers = checkFingers(landmarks);
+
+                    const isAllFingersOpen = fingers.isThumbOpen && fingers.isIndexOpen && fingers.isMiddleOpen && fingers.isRingOpen && fingers.isPinkyOpen;
+                    if (isAllFingersOpen) fullOpenHandsCount++;
+
+                    const mapX = (x) => (1 - x) * canvasElement.width;
+                    const mapY = (y) => y * canvasElement.height;
+                    const fingerTips = [
+                        { state: fingers.isThumbOpen, index: 4 },
+                        { state: fingers.isIndexOpen, index: 8 },
+                        { state: fingers.isMiddleOpen, index: 12 },
+                        { state: fingers.isRingOpen, index: 16 },
+                        { state: fingers.isPinkyOpen, index: 20 },
+                    ];
+
+                    for (const tip of fingerTips) {
+                        if (tip.state) {
+                            const tipLandmark = landmarks[tip.index];
+                            drawMintCircle(canvasCtx, mapX(tipLandmark.x), mapY(tipLandmark.y), TIP_CIRCLE_RADIUS);
+                        }
+                    }
+
+                    let rawText = "";
+                    const onlyThumb = fingers.isThumbOpen && !fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && !fingers.isPinkyOpen;
+                    const onlyIndex = !fingers.isThumbOpen && fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && !fingers.isPinkyOpen;
+                    const onlyPinky = !fingers.isThumbOpen && !fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && fingers.isPinkyOpen;
+                    const thumbAndIndex = fingers.isThumbOpen && fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && !fingers.isPinkyOpen;
+
+                    if (handedness === 'Right') {
+                        if (onlyThumb) rawText = "안녕하세요";
+                        else if (onlyIndex) rawText = "저는";
+                        else if (onlyPinky) rawText = "제 이름은";
+                        else if (thumbAndIndex) rawText = "입니다";
+                    } else if (handedness === 'Left') {
+                        if (onlyThumb) rawText = "개발자";
+                        else if (onlyIndex) rawText = "PM";
+                        else if (onlyPinky) rawText = "마케터";
+                        else if (thumbAndIndex) rawText = "디자이너";
+                    }
+
+                    let tracker = gestureTracking[handedness];
+
+                    if (rawText !== tracker.currentRaw) {
+                        tracker.currentRaw = rawText;
+                        tracker.startTime = now;
+                    } else {
+                        if (rawText !== "" && rawText !== tracker.stabilized) {
+                            if (now - tracker.startTime >= STABILIZE_TIME_MS) {
+                                tracker.stabilized = rawText;
+                                playAudio(rawText);
+                            }
+                        } else if (rawText === "") {
+                            tracker.stabilized = "";
+                        }
+                    }
+
+                    let displayText = tracker.stabilized;
+
+                    if (displayText !== "") {
+                        canvasCtx.font = "500 30px Pretendard"; 
+                        canvasCtx.textAlign = "center";
+                        canvasCtx.textBaseline = "middle";
+                        canvasCtx.fillStyle = "white"; 
+
+                        const handX = landmarks[0].x; 
+                        const handY = landmarks[8].y; 
+                        const textX = (1 - handX) * canvasElement.width;
+                        const textY = handY * canvasElement.height - 50; 
+
+                        canvasCtx.fillText(displayText, textX, textY);
+                    }
+                }
+            }
+
+            const isBothHandsOpen = (fullOpenHandsCount === 2);
+            if (isBothHandsOpen && !wasBothHandsOpen) {
+                wave.active = true;
+                wave.progress = 0;
+                wave.opacity = 0.8; 
+            }
+            wasBothHandsOpen = isBothHandsOpen;
+
+            if (wave.active) {
+                wave.progress += 8;     
+                wave.opacity -= 0.008;  
+
+                if (wave.opacity <= 0) {
+                    wave.active = false;
+                } else {
+                    canvasCtx.save();
+                    const w = canvasElement.width;
+                    const h = canvasElement.height;
+
+                    canvasCtx.fillStyle = `rgba(150, 230, 255, ${wave.opacity * 0.5})`;
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(0, h);
+                    let baseY1 = h + 150 - wave.progress * 1.5;
+                    for(let x = 0; x <= w; x += 20) {
+                        let y = baseY1 + Math.sin(x * 0.005 + wave.progress * 0.05) * 50;
+                        canvasCtx.lineTo(x, y);
+                    }
+                    canvasCtx.lineTo(w, h);
+                    canvasCtx.fill();
+
+                    canvasCtx.fillStyle = `rgba(100, 200, 255, ${wave.opacity * 0.8})`;
+                    canvasCtx.beginPath();
+                    canvasCtx.moveTo(0, h);
+                    let baseY2 = h + 200 - wave.progress * 1.8;
+                    for(let x = 0; x <= w; x += 20) {
+                        let y = baseY2 + Math.sin(x * 0.006 + wave.progress * 0.04 + 2) * 40;
+                        canvasCtx.lineTo(x, y);
+                    }
+                    canvasCtx.lineTo(w, h);
+                    canvasCtx.fill();
+
+                    canvasCtx.restore();
+                }
+            }
+        });
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 1280,
+            height: 720
+        });
+        camera.start();
+    </script>
+</body>
+</html>
