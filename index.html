@@ -67,8 +67,6 @@
         const STABILIZE_TIME_MS = 250; 
 
         let lastPlayedTime = {};
-        
-        // ★ 쿨타임을 기존 2000(2초)에서 500(0.5초)으로 단축하여 반응 속도 향상!
         const COOLDOWN_MS = 500; 
 
         const audioFiles = {
@@ -81,6 +79,22 @@
             '마케터': 'marketer',
             '디자이너': 'designer'
         };
+
+        // ★ 오디오 사전 로드 (Preload) 로직 추가
+        // 사이트가 열릴 때 오디오 객체를 미리 한 번만 생성하여 딜레이를 없앱니다.
+        const preloadedAudios = {};
+        for (const [text, fileName] of Object.entries(audioFiles)) {
+            const audio = new Audio(`${fileName}.m4a`);
+            audio.preload = 'auto'; // 브라우저에게 미리 다운로드하라고 지시
+            
+            // 볼륨 설정도 처음에 미리 해둡니다.
+            if (['개발자', 'PM', '마케터', '디자이너'].includes(text)) {
+                audio.volume = 0.8;
+            } else {
+                audio.volume = 1.0;
+            }
+            preloadedAudios[text] = audio;
+        }
 
         function getDistance(p1, p2) {
             return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
@@ -110,18 +124,12 @@
             }
             lastPlayedTime[text] = now;
             
-            const fileName = audioFiles[text];
-            if (!fileName) return; 
+            // ★ 새로 만들지 않고, 미리 장전해둔 오디오를 가져와서 재생
+            const audio = preloadedAudios[text];
+            if (!audio) return; 
 
-            const audio = new Audio(`${fileName}.m4a`);
-            
-            const lowerVolumeTexts = ['개발자', 'PM', '마케터', '디자이너'];
-            if (lowerVolumeTexts.includes(text)) {
-                audio.volume = 0.8; 
-            } else {
-                audio.volume = 1.0; 
-            }
-
+            // 혹시 아직 재생 중이더라도 처음으로 되감은 후 즉시 다시 재생되도록 처리
+            audio.currentTime = 0;
             audio.play().catch(e => {
                 console.log("오디오 재생 실패:", e);
             });
