@@ -3,51 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>양손 인식 텍스트 & 파도 & 음성 효과</title>
+    <title>Windows 7 손가락 인식 카메라</title>
     
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     
     <style>
+        /* 기본 바탕화면 설정 */
         body { 
             margin: 0; 
             padding: 0; 
-            background-color: #000000; 
-            font-family: 'Pretendard', sans-serif;
-            overflow: hidden; 
-        }
-        video { display: none; } 
-        canvas { 
-            display: block;
             width: 100vw;
-            height: 100vh;
-            object-fit: cover; 
+            height: 100vh; 
+            font-family: 'Pretendard', 'Segoe UI', sans-serif;
+            overflow: hidden; 
+            background-image: url('background.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat; 
         }
-        #audio-hint {
+
+        /* 비디오 숨김 처리 */
+        video { display: none; } 
+
+        /* 바탕화면 아이콘 스타일 */
+        .desktop-icons {
             position: absolute;
             top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.7);
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             z-index: 10;
-            pointer-events: none;
-            transition: opacity 0.5s;
+        }
+
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 74px;
+            padding: 5px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            text-shadow: 1px 1px 2px black, 0 0 10px black;
+            font-size: 12px;
+            text-align: center;
+            transition: background-color 0.1s, border-color 0.1s;
+        }
+
+        .desktop-icon:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .icon-emoji {
+            font-size: 40px;
+            margin-bottom: 5px;
+            filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.5));
+        }
+
+        /* 윈도우 7 에어로 글래스(Aero Glass) 창 테마 */
+        .window {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            background: rgba(220, 235, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            box-shadow: 
+                inset 0 0 5px rgba(255, 255, 255, 0.8),
+                inset 0 1px 1px rgba(255, 255, 255, 1),
+                0 10px 30px rgba(0, 0, 0, 0.5);
+            padding: 6px;
+            backdrop-filter: blur(8px);
+            z-index: 20;
+        }
+
+        /* 윈도우 7 타이틀 바 */
+        .title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 28px;
+            margin-bottom: 4px;
+            padding: 0 4px;
+            color: #000;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8), 0 0 10px rgba(255, 255, 255, 1);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* 윈도우 창 제어 버튼들 */
+        .window-controls {
+            display: flex;
+            gap: 2px;
+        }
+        .window-controls div {
+            width: 28px;
+            height: 18px;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            border-radius: 3px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(200,210,220,0.5));
+            box-shadow: inset 0 1px 1px rgba(255,255,255,1);
+        }
+        .window-controls .close-btn {
+            background: linear-gradient(to bottom, rgba(255,150,150,0.8), rgba(200,30,30,0.7));
+            border-color: rgba(100, 0, 0, 0.5);
+        }
+
+        /* 실제 카메라 화면이 그려질 영역 */
+        .content-area {
+            background-color: #000;
+            border: 1px solid rgba(0, 0, 0, 0.7);
+            border-radius: 3px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 캔버스 크기를 윈도우 창 안에 맞춤 */
+        canvas { 
+            display: block;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 16 / 9;
+        }
+
+        /* 오디오 허용 안내 툴팁 */
+        #audio-hint {
+            position: absolute;
+            background: linear-gradient(to bottom, #FFFFE1, #FFFFA5);
+            border: 1px solid #000;
+            padding: 8px 12px;
+            border-radius: 3px;
+            font-size: 14px;
+            color: #000;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        /* 윈도우 7 작업표시줄 */
+        .taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(10, 20, 30, 0.5);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(0, 0, 0, 0.5);
+            z-index: 50;
+        }
+        
+        .start-button-mockup {
+            width: 36px;
+            height: 36px;
+            background: radial-gradient(circle, rgba(100,150,255,0.8), rgba(20,50,150,0.8));
+            border-radius: 50%;
+            margin-left: 10px;
+            border: 2px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        /* 우측 하단 Wi-Fi 연결 창 */
+        .wifi-window {
+            position: absolute;
+            bottom: 50px; 
+            right: 15px;
+            width: 260px;
+            background: rgba(245, 249, 255, 0.85); 
+            border: 1px solid rgba(150, 150, 150, 0.6);
+            border-radius: 5px;
+            box-shadow: 
+                inset 0 0 2px rgba(255, 255, 255, 1),
+                0 4px 15px rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            z-index: 40;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .wifi-title {
+            font-weight: bold;
+            color: #003399;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .wifi-network-name {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ★ 이미지 와이파이 아이콘 스타일 */
+        .wifi-icon-img {
+            height: 18px; /* 글자 크기와 자연스럽게 맞추기 위해 높이 지정 */
+            width: auto;
+            vertical-align: middle;
+        }
+
+        .wifi-content p {
+            margin: 5px 0;
+            color: #444;
+        }
+
+        .wifi-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 5px;
+            margin-top: 5px;
+            margin-bottom: 12px;
+            border: 1px solid #999;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        .wifi-input:focus {
+            border-color: #569de5;
+            box-shadow: 0 0 3px #569de5;
+        }
+
+        .wifi-btn {
+            display: block;
+            width: 65px;
+            padding: 4px 0;
+            margin-left: auto;
+            background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
+            border: 1px solid #adadad;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .wifi-btn:hover {
+            background: linear-gradient(to bottom, #eaf6fd, #d9f0fc);
+            border-color: #7eb4ea;
         }
     </style>
 </head>
 <body>
-    
-    <div id="audio-hint">🔊 소리 재생을 위해 화면을 한 번 클릭해 주세요</div>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" width="1280" height="720"></canvas>
+
+    <!-- 바탕화면 아이콘 -->
+    <div class="desktop-icons">
+        <div class="desktop-icon">
+            <div class="icon-emoji">💻</div>
+            <span>Computer</span>
+        </div>
+        <div class="desktop-icon">
+            <div class="icon-emoji">🗑️</div>
+            <span>Recycle Bin</span>
+        </div>
+        <div class="desktop-icon">
+            <div class="icon-emoji">📁</div>
+            <span>New Folder</span>
+        </div>
+        <div class="desktop-icon">
+            <div class="icon-emoji">🌐</div>
+            <span>Internet</span>
+        </div>
+        <div class="desktop-icon">
+            <div class="icon-emoji">🎵</div>
+            <span>Media</span>
+        </div>
+        <div class="desktop-icon">
+            <div class="icon-emoji">🛡️</div>
+            <span>Security</span>
+        </div>
+    </div>
+
+    <!-- 중앙 윈도우 창 -->
+    <div class="window">
+        <div class="title-bar">
+            <span></span>
+            <div class="window-controls">
+                <div></div>
+                <div></div>
+                <div class="close-btn"></div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <div id="audio-hint">💡 시스템 사운드 활성화를 위해 화면을 한 번 클릭하세요.</div>
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" width="1280" height="720"></canvas>
+        </div>
+    </div>
+
+    <!-- 우측 하단 가짜 와이파이 연결 창 -->
+    <div class="wifi-window">
+        <div class="wifi-title">무선 네트워크 연결</div>
+        <div class="wifi-content">
+            <div class="wifi-network-name">
+                <!-- ★ 이모지 대신 이미지 아이콘으로 변경, 와이파이 이름 변경 -->
+                <img src="wyfi.png" alt="Wi-Fi" class="wifi-icon-img" /> 
+                <span>WY-FI</span>
+            </div>
+            <p>네트워크 보안 키를 입력하십시오.</p>
+            <input type="password" placeholder="보안 키 입력" class="wifi-input" onclick="event.stopPropagation();" />
+            <button class="wifi-btn" onclick="event.stopPropagation();">연결</button>
+        </div>
+    </div>
+
+    <!-- 하단 작업표시줄 -->
+    <div class="taskbar">
+        <div class="start-button-mockup"></div>
+    </div>
 
     <script>
         document.body.addEventListener('click', () => {
             document.getElementById('audio-hint').style.opacity = '0';
+            setTimeout(() => { document.getElementById('audio-hint').style.display = 'none'; }, 300);
         });
 
         const videoElement = document.getElementById('video');
@@ -80,14 +364,11 @@
             '디자이너': 'designer'
         };
 
-        // ★ 오디오 사전 로드 (Preload) 로직 추가
-        // 사이트가 열릴 때 오디오 객체를 미리 한 번만 생성하여 딜레이를 없앱니다.
         const preloadedAudios = {};
         for (const [text, fileName] of Object.entries(audioFiles)) {
             const audio = new Audio(`${fileName}.m4a`);
-            audio.preload = 'auto'; // 브라우저에게 미리 다운로드하라고 지시
+            audio.preload = 'auto'; 
             
-            // 볼륨 설정도 처음에 미리 해둡니다.
             if (['개발자', 'PM', '마케터', '디자이너'].includes(text)) {
                 audio.volume = 0.8;
             } else {
@@ -124,11 +405,9 @@
             }
             lastPlayedTime[text] = now;
             
-            // ★ 새로 만들지 않고, 미리 장전해둔 오디오를 가져와서 재생
             const audio = preloadedAudios[text];
             if (!audio) return; 
 
-            // 혹시 아직 재생 중이더라도 처음으로 되감은 후 즉시 다시 재생되도록 처리
             audio.currentTime = 0;
             audio.play().catch(e => {
                 console.log("오디오 재생 실패:", e);
@@ -222,7 +501,7 @@
                     let displayText = tracker.stabilized;
 
                     if (displayText !== "") {
-                        canvasCtx.font = "500 30px Pretendard"; 
+                        canvasCtx.font = "500 45px Pretendard"; 
                         canvasCtx.textAlign = "center";
                         canvasCtx.textBaseline = "middle";
                         canvasCtx.fillStyle = "white"; 
