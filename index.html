@@ -136,6 +136,52 @@
             aspect-ratio: 16 / 9;
         }
 
+        /* 프루티거 에어로 스타일 무지갯빛 글래스 비눗방울 */
+        .bubble {
+            position: absolute;
+            top: 0; left: 0;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(255, 255, 255, 0.7) 0%, 
+                rgba(200, 255, 255, 0.4) 20%, 
+                rgba(255, 200, 255, 0.3) 40%, 
+                rgba(255, 255, 200, 0.2) 60%, 
+                rgba(100, 200, 255, 0.4) 80%, 
+                rgba(255, 255, 255, 0.6) 100%);
+            box-shadow: 
+                inset 0 0 25px rgba(255, 255, 255, 0.9),
+                inset 15px 0 40px rgba(255, 150, 255, 0.3),
+                inset -15px -15px 40px rgba(0, 150, 255, 0.5),
+                0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            backdrop-filter: brightness(1.05);
+            pointer-events: none; 
+            z-index: 100; 
+            will-change: transform;
+        }
+
+        .bubble::before {
+            content: '';
+            position: absolute;
+            top: 10%; left: 15%;
+            width: 35%; height: 25%;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(-45deg);
+            border-radius: 50%;
+        }
+
+        .bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 8%; right: 10%;
+            width: 60%; height: 25%;
+            border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(150,220,255,0.6) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(-30deg);
+        }
+
         /* 오디오 허용 안내 툴팁 */
         #audio-hint {
             position: absolute;
@@ -146,7 +192,7 @@
             font-size: 14px;
             color: #000;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-            z-index: 10;
+            z-index: 30;
             cursor: pointer;
             transition: opacity 0.3s;
         }
@@ -165,7 +211,7 @@
             align-items: center;
             justify-content: space-between;
             border-top: 1px solid rgba(0, 0, 0, 0.5);
-            z-index: 50;
+            z-index: 200;
         }
         
         .start-button-mockup {
@@ -178,78 +224,81 @@
             box-shadow: 0 0 5px rgba(0,0,0,0.5);
         }
 
-        /* 우측 하단 Wi-Fi 연결 창 */
+        /* ★ 우측 하단 Wi-Fi 연결 창 (크기 확대) */
         .wifi-window {
             position: absolute;
             bottom: 50px; 
-            right: 15px;
-            width: 260px;
-            background: rgba(245, 249, 255, 0.85); 
-            border: 1px solid rgba(150, 150, 150, 0.6);
-            border-radius: 5px;
+            right: 20px;
+            width: 380px; /* 기존 260px -> 380px로 확대 */
+            background: rgba(245, 249, 255, 0.9); 
+            border: 1px solid rgba(150, 150, 150, 0.8);
+            border-radius: 6px;
             box-shadow: 
-                inset 0 0 2px rgba(255, 255, 255, 1),
-                0 4px 15px rgba(0, 0, 0, 0.3);
-            padding: 15px;
+                inset 0 0 3px rgba(255, 255, 255, 1),
+                0 8px 25px rgba(0, 0, 0, 0.4);
+            padding: 22px; /* 여백 확대 */
             backdrop-filter: blur(10px);
-            z-index: 40;
-            font-size: 13px;
+            z-index: 150;
+            font-size: 15px; /* 전체 글자 크기 상향 */
             color: #333;
         }
 
         .wifi-title {
             font-weight: bold;
+            font-size: 16px;
             color: #003399;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.15);
         }
 
         .wifi-network-name {
             font-weight: bold;
-            font-size: 14px;
-            margin-bottom: 5px;
+            font-size: 18px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
-        /* ★ 이미지 와이파이 아이콘 스타일 */
         .wifi-icon-img {
-            height: 18px; /* 글자 크기와 자연스럽게 맞추기 위해 높이 지정 */
+            height: 24px; /* 아이콘 크기 확대 */
             width: auto;
             vertical-align: middle;
         }
 
         .wifi-content p {
-            margin: 5px 0;
+            margin: 8px 0;
             color: #444;
+            font-size: 14px;
         }
 
         .wifi-input {
             width: 100%;
             box-sizing: border-box;
-            padding: 5px;
-            margin-top: 5px;
-            margin-bottom: 12px;
+            padding: 9px;
+            font-size: 15px;
+            margin-top: 8px;
+            margin-bottom: 16px;
             border: 1px solid #999;
-            border-radius: 3px;
+            border-radius: 4px;
             outline: none;
         }
 
         .wifi-input:focus {
             border-color: #569de5;
-            box-shadow: 0 0 3px #569de5;
+            box-shadow: 0 0 5px #569de5;
         }
 
         .wifi-btn {
             display: block;
-            width: 65px;
-            padding: 4px 0;
+            width: 90px;
+            padding: 8px 0;
+            font-size: 14px;
             margin-left: auto;
             background: linear-gradient(to bottom, #f0f0f0, #e0e0e0);
             border: 1px solid #adadad;
-            border-radius: 3px;
+            border-radius: 4px;
             cursor: pointer;
             font-family: inherit;
         }
@@ -313,7 +362,6 @@
         <div class="wifi-title">무선 네트워크 연결</div>
         <div class="wifi-content">
             <div class="wifi-network-name">
-                <!-- ★ 이모지 대신 이미지 아이콘으로 변경, 와이파이 이름 변경 -->
                 <img src="wyfi.png" alt="Wi-Fi" class="wifi-icon-img" /> 
                 <span>WY-FI</span>
             </div>
@@ -353,10 +401,11 @@
         let lastPlayedTime = {};
         const COOLDOWN_MS = 500; 
 
+        // 오디오 파일매칭 맵
         const audioFiles = {
             '안녕하세요': 'hello',
-            '저는': 'iam',
             '제 이름은': 'myname',
+            '저는': 'iam',
             '입니다': 'imnida',
             '개발자': 'developer',
             'PM': 'pm',
@@ -414,6 +463,45 @@
             });
         }
 
+        // 비눗방울 애니메이션 로직
+        const BUBBLE_COUNT = 5;
+        const BUBBLE_SIZE = 220;
+        const bubbles = [];
+
+        for (let i = 0; i < BUBBLE_COUNT; i++) {
+            const bEl = document.createElement('div');
+            bEl.className = 'bubble';
+            document.body.appendChild(bEl);
+            
+            bubbles.push({
+                el: bEl,
+                x: Math.random() * (window.innerWidth - BUBBLE_SIZE), 
+                y: Math.random() * (window.innerHeight - BUBBLE_SIZE),
+                vx: (Math.random() - 0.5) * 4,
+                vy: (Math.random() - 0.5) * 4
+            });
+        }
+
+        function animateBubbles() {
+            const cw = window.innerWidth;
+            const ch = window.innerHeight;
+
+            bubbles.forEach(b => {
+                b.x += b.vx;
+                b.y += b.vy;
+
+                if (b.x <= 0) { b.x = 0; b.vx *= -1; }
+                if (b.y <= 0) { b.y = 0; b.vy *= -1; }
+                if (b.x + BUBBLE_SIZE >= cw) { b.x = cw - BUBBLE_SIZE; b.vx *= -1; }
+                if (b.y + BUBBLE_SIZE >= ch) { b.y = ch - BUBBLE_SIZE; b.vy *= -1; }
+
+                b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
+            });
+
+            requestAnimationFrame(animateBubbles);
+        }
+        animateBubbles();
+
         const hands = new Hands({
             locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
         });
@@ -465,21 +553,24 @@
                     }
 
                     let rawText = "";
+
+                    // 손가락 독립 개별 상태 조건
                     const onlyThumb = fingers.isThumbOpen && !fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && !fingers.isPinkyOpen;
                     const onlyIndex = !fingers.isThumbOpen && fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && !fingers.isPinkyOpen;
                     const onlyPinky = !fingers.isThumbOpen && !fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && fingers.isPinkyOpen;
-                    const thumbAndIndex = fingers.isThumbOpen && fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && !fingers.isPinkyOpen;
 
-                    if (handedness === 'Right') {
-                        if (onlyThumb) rawText = "안녕하세요";
-                        else if (onlyIndex) rawText = "저는";
-                        else if (onlyPinky) rawText = "제 이름은";
-                        else if (thumbAndIndex) rawText = "입니다";
-                    } else if (handedness === 'Left') {
-                        if (onlyThumb) rawText = "개발자";
-                        else if (onlyIndex) rawText = "PM";
-                        else if (onlyPinky) rawText = "마케터";
-                        else if (thumbAndIndex) rawText = "디자이너";
+                    // ★ 제스처 조건 수정 (요청사항 반영)
+                    // MediaPipe에서 'Left' = 사용자의 왼손
+                    if (handedness === 'Left') {
+                        if (isAllFingersOpen) {
+                            rawText = "안녕하세요"; // 1. 모든 손가락 다 핌
+                        } else if (onlyThumb) {
+                            rawText = "제 이름은";   // 2. 엄지만 핌
+                        } else if (onlyIndex) {
+                            rawText = "저는";       // 3. 검지만 핌
+                        } else if (onlyPinky) {
+                            rawText = "입니다";     // 4. 새끼만 핌
+                        }
                     }
 
                     let tracker = gestureTracking[handedness];
