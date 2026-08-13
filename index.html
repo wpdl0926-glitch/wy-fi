@@ -88,7 +88,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 95%; /* 꽉 차게 넓힘 */
+            width: 95%; 
             max-width: 450px;
             background: rgba(220, 235, 255, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.6);
@@ -149,7 +149,6 @@
             width: 100%;
         }
 
-        /* ★ 가로가 더 넓은 16:9 비율로 수정 */
         canvas { 
             display: block;
             width: 100%;
@@ -216,12 +215,13 @@
             transition: opacity 0.3s;
         }
 
+        /* ★ 하단바 너비(높이)를 60px로 더 넓게 키움 */
         .taskbar {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 40px;
+            height: 60px; /* 40px -> 60px */
             background: rgba(10, 30, 60, 0.4);
             box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(10px);
@@ -232,14 +232,19 @@
             z-index: 200;
         }
         
-        .start-button-mockup {
-            width: 36px;
-            height: 36px;
-            background: radial-gradient(circle, rgba(100,180,255,0.9), rgba(20,80,180,0.9));
-            border-radius: 50%;
-            margin-left: 10px;
-            border: 2px solid rgba(255,255,255,0.4);
-            box-shadow: 0 0 6px rgba(0,50,150,0.4);
+        /* ★ 기존 시작 버튼 대체 -> 웨일 이미지 전용 스타일 */
+        .start-button {
+            width: 48px; /* 넓어진 하단바에 맞게 크기 확대 */
+            height: 48px;
+            margin-left: 15px;
+            object-fit: contain;
+            cursor: pointer;
+            filter: drop-shadow(0 0 6px rgba(0,50,150,0.5));
+            transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .start-button:hover {
+            transform: scale(1.1);
         }
 
         .wifi-window {
@@ -267,7 +272,8 @@
         .wifi-window.minimized {
             top: 100%;
             left: 100%;
-            transform: translate(calc(-100% - 15px), calc(-100% - 40px)); 
+            /* ★ 하단바가 60px로 커진 만큼 Y축 여백을 -70px로 수정 */
+            transform: translate(calc(-100% - 15px), calc(-100% - 70px)); 
             width: 55%; 
             max-width: 220px; 
             padding: 12px;
@@ -334,7 +340,6 @@
         <div class="content-area">
             <div id="audio-hint">💡 시스템 사운드 활성화를 위해 화면을 한 번 클릭하세요.</div>
             <video id="video" autoplay playsinline></video>
-            <!-- ★ 가로가 넓은 16:9 캔버스로 수정 -->
             <canvas id="canvas" width="1280" height="720"></canvas>
         </div>
     </div>
@@ -353,7 +358,8 @@
     </div>
 
     <div class="taskbar">
-        <div class="start-button-mockup"></div>
+        <!-- ★ 시작 버튼 자리에 whale.png 이미지 적용 -->
+        <img src="whale.png" alt="Whale Start" class="start-button">
     </div>
 
     <script>
@@ -365,23 +371,23 @@
         const memberMentions = {
             'Jooeun': {
                 left:  ['안녕하세요', '저는', '기획자', '주은입니다'],
-                right: ['우리는', '웨일', '연세대', '팀']
+                right: ['우리는', '웨일', '연세대', '팀원']
             },
             'Daewoong': {
                 left:  ['반갑습니다', '저는', '개발자', '대웅입니다'],
-                right: ['우리는', '웨일', '연세대', '팀']
+                right: ['우리는', '웨일', '연세대', '팀원']
             },
             'Yunseo': {
-                left:  ['연결', '저는', 'PM', '윤서입니다'],
-                right: ['우리는', '웨일', '연세대', '팀']
+                left:  ['안녕하세요', '저는', '마케터', '윤서입니다'],
+                right: ['우리는', '웨일', '연세대', '팀원']
             },
             'Sua': {
-                left:  ['안녕하세요', '저는', '마케터', '수아입니다'],
-                right: ['우리는', '웨일', '연세대', '팀']
+                left:  ['안녕하세요', '저는', '디자이너', '수아입니다'],
+                right: ['우리는', '웨일', '연세대', '팀원']
             },
             'Junha': {
-                left:  ['반갑습니다', '저는', '디자이너', '준하입니다'],
-                right: ['우리는', '웨일', '연세대', '팀']
+                left:  ['반갑습니다', '저는', 'PM', '준하입니다'],
+                right: ['우리는', '웨일', '연세대', '팀원']
             }
         };
 
@@ -712,7 +718,6 @@
             onFrame: async () => {
                 await hands.send({image: videoElement});
             },
-            // ★ 카메라 캡처 해상도도 넓은 가로 시야(16:9)로 변경
             width: 1280,
             height: 720
         });
