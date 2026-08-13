@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     
     <style>
+        /* 기본 바탕화면 설정 */
         body { 
             margin: 0; 
             padding: 0; 
@@ -25,27 +26,29 @@
 
         video { display: none; } 
 
+        /* 아이콘 간격 확대 */
         .desktop-icons {
             position: absolute;
             top: 20px;
             left: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 20px; /* 12px -> 20px */
             z-index: 10;
         }
 
+        /* 아이콘 영역 및 글씨 크기 확대 */
         .desktop-icon {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 76px;
-            padding: 8px 4px;
+            width: 136px; /* 76px -> 136px */
+            padding: 10px 6px; /* 패딩 확대 */
             border-radius: 6px;
             cursor: pointer;
             color: #ffffff;
             text-shadow: 0 1px 3px rgba(0, 50, 120, 0.8), 0 0 8px rgba(0, 100, 200, 0.4);
-            font-size: 13px;
+            font-size: 16px; /* 13px -> 16px */
             text-align: center;
             border: 1px solid transparent;
             transition: background-color 0.2s ease, border-color 0.2s ease;
@@ -60,10 +63,11 @@
             transform: scale(1.08); 
         }
 
+        /* 실제 이미지 크기 확대 */
         .desktop-icon-img {
-            width: 58px; 
-            height: 58px;
-            margin-bottom: 6px;
+            width: 104px; /* 58px -> 104px */
+            height: 104px; /* 58px -> 104px */
+            margin-bottom: 8px;
             object-fit: contain;
             transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
@@ -312,7 +316,7 @@
 </head>
 <body>
 
-    <!-- ★ PNG 확장자로 적용 -->
+    <!-- 전달해주신 파일명 유지 -->
     <div class="desktop-icons">
         <div class="desktop-icon">
             <img src="joo.png" alt="Joo" class="desktop-icon-img">
