@@ -10,12 +10,26 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     
     <style>
-        /* 기본 바탕화면 설정 */
+        html {
+            background-color: #000;
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
         body { 
+            position: relative;
+            height: 100vh;
+            max-width: calc(100vh * (9 / 16)); 
+            width: 100%;
+            aspect-ratio: 9 / 16;
             margin: 0; 
             padding: 0; 
-            width: 100vw;
-            height: 100vh; 
             font-family: 'Pretendard', 'Segoe UI', sans-serif;
             overflow: hidden; 
             background-image: url('background.jpg'); 
@@ -26,29 +40,27 @@
 
         video { display: none; } 
 
-        /* 아이콘 간격 확대 */
         .desktop-icons {
             position: absolute;
             top: 20px;
-            left: 20px;
+            left: 15px;
             display: flex;
             flex-direction: column;
-            gap: 20px; /* 12px -> 20px */
+            gap: 2px;
             z-index: 10;
         }
 
-        /* 아이콘 영역 및 글씨 크기 확대 */
         .desktop-icon {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 136px; /* 76px -> 136px */
-            padding: 10px 6px; /* 패딩 확대 */
+            width: 80px; 
+            padding: 4px;
             border-radius: 6px;
             cursor: pointer;
             color: #ffffff;
             text-shadow: 0 1px 3px rgba(0, 50, 120, 0.8), 0 0 8px rgba(0, 100, 200, 0.4);
-            font-size: 16px; /* 13px -> 16px */
+            font-size: 12px; 
             text-align: center;
             border: 1px solid transparent;
             transition: background-color 0.2s ease, border-color 0.2s ease;
@@ -63,22 +75,21 @@
             transform: scale(1.08); 
         }
 
-        /* 실제 이미지 크기 확대 */
         .desktop-icon-img {
-            width: 104px; /* 58px -> 104px */
-            height: 104px; /* 58px -> 104px */
-            margin-bottom: 8px;
+            width: 70px; 
+            height: 70px;
+            margin-bottom: 4px;
             object-fit: contain;
             transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-
 
         .window {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 800px;
+            width: 95%; /* 꽉 차게 넓힘 */
+            max-width: 450px;
             background: rgba(220, 235, 255, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.6);
             border-radius: 8px;
@@ -88,7 +99,7 @@
                 0 10px 30px rgba(0, 30, 80, 0.3); 
             padding: 6px;
             backdrop-filter: blur(8px);
-            z-index: 20;
+            z-index: 300; 
         }
 
         .title-bar {
@@ -115,10 +126,15 @@
             border-radius: 3px;
             background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(200,210,220,0.5));
             box-shadow: inset 0 1px 1px rgba(255,255,255,1);
+            cursor: default;
         }
         .window-controls .close-btn {
             background: linear-gradient(to bottom, rgba(255,150,150,0.8), rgba(200,30,30,0.7));
             border-color: rgba(100, 0, 0, 0.3);
+            cursor: pointer;
+        }
+        .window-controls .close-btn:hover {
+            background: linear-gradient(to bottom, rgba(255,100,100,0.9), rgba(220,20,20,0.8));
         }
 
         .content-area {
@@ -130,8 +146,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            width: 100%;
         }
 
+        /* ★ 가로가 더 넓은 16:9 비율로 수정 */
         canvas { 
             display: block;
             width: 100%;
@@ -139,12 +157,11 @@
             aspect-ratio: 16 / 9;
         }
 
-
         .bubble {
             position: absolute;
             top: 0; left: 0;
-            width: 220px;
-            height: 220px;
+            width: 180px; 
+            height: 180px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, 
                 rgba(255, 255, 255, 0.7) 0%, 
@@ -161,7 +178,7 @@
             border: 1px solid rgba(255, 255, 255, 0.7);
             backdrop-filter: brightness(1.05);
             pointer-events: none; 
-            z-index: 100; 
+            z-index: 50; 
             will-change: transform;
         }
 
@@ -194,13 +211,13 @@
             font-size: 14px;
             color: #002244;
             box-shadow: 2px 2px 5px rgba(0, 40, 100, 0.2);
-            z-index: 30;
+            z-index: 450;
             cursor: pointer;
             transition: opacity 0.3s;
         }
 
         .taskbar {
-            position: fixed;
+            position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
@@ -227,96 +244,60 @@
 
         .wifi-window {
             position: absolute;
-            bottom: 50px; 
-            right: 20px;
-            width: 380px; 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 70%; 
+            max-width: 300px; 
             background: rgba(240, 248, 255, 0.9); 
             border: 1px solid rgba(255, 255, 255, 0.6);
             border-radius: 8px;
             box-shadow: 
                 inset 0 0 4px rgba(255, 255, 255, 1),
                 0 8px 25px rgba(0, 40, 100, 0.25);
-            padding: 22px; 
+            padding: 20px; 
             backdrop-filter: blur(10px);
             z-index: 150;
-            font-size: 15px; 
+            font-size: 14px; 
             color: #002244;
+            transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: top, left, transform, width, padding;
         }
 
-        .wifi-title {
-            font-weight: bold;
-            font-size: 16px;
-            color: #0044aa;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(0, 50, 150, 0.1);
+        .wifi-window.minimized {
+            top: 100%;
+            left: 100%;
+            transform: translate(calc(-100% - 15px), calc(-100% - 40px)); 
+            width: 55%; 
+            max-width: 220px; 
+            padding: 12px;
         }
 
-        .wifi-network-name {
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #002244;
-        }
+        .wifi-title { transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); font-weight: bold; font-size: 15px; color: #0044aa; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 50, 150, 0.1); }
+        .wifi-window.minimized .wifi-title { font-size: 13px; margin-bottom: 8px; padding-bottom: 6px; }
 
-        .wifi-icon-img {
-            height: 24px; 
-            width: auto;
-            vertical-align: middle;
-        }
+        .wifi-network-name { transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); font-weight: bold; font-size: 16px; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: #002244; }
+        .wifi-window.minimized .wifi-network-name { font-size: 14px; }
 
-        .wifi-content p {
-            margin: 8px 0;
-            color: #003366;
-            font-size: 14px;
-        }
+        .wifi-icon-img { transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); height: 22px; width: auto; vertical-align: middle; }
+        .wifi-window.minimized .wifi-icon-img { height: 18px; }
 
-        .wifi-input {
-            width: 100%;
-            box-sizing: border-box;
-            padding: 9px;
-            font-size: 15px;
-            margin-top: 8px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(0, 100, 200, 0.3);
-            border-radius: 6px;
-            outline: none;
-            background: rgba(255, 255, 255, 0.8);
-            color: #002244;
-        }
+        .wifi-content p { transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); margin: 6px 0; color: #003366; font-size: 13px; }
+        .wifi-window.minimized .wifi-content p { margin: 4px 0; font-size: 11px; }
 
-        .wifi-input:focus {
-            border-color: #56aaff;
-            box-shadow: 0 0 5px rgba(86, 170, 255, 0.6);
-        }
+        .wifi-input { transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); width: 100%; box-sizing: border-box; padding: 8px; font-size: 14px; margin-top: 6px; margin-bottom: 14px; border: 1px solid rgba(0, 100, 200, 0.3); border-radius: 6px; outline: none; background: rgba(255, 255, 255, 0.8); color: #002244; }
+        .wifi-window.minimized .wifi-input { padding: 5px; font-size: 12px; margin-bottom: 10px; }
 
-        .wifi-btn {
-            display: block;
-            width: 90px;
-            padding: 8px 0;
-            font-size: 14px;
-            font-weight: bold;
-            color: #0044aa;
-            margin-left: auto;
-            background: linear-gradient(to bottom, #ffffff, #eaf4ff);
-            border: 1px solid rgba(0, 100, 200, 0.3);
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-        }
+        .wifi-input:focus { border-color: #56aaff; box-shadow: 0 0 5px rgba(86, 170, 255, 0.6); }
 
-        .wifi-btn:hover {
-            background: linear-gradient(to bottom, #eaf6fd, #cce8ff);
-            border-color: #56aaff;
-        }
+        .wifi-btn { transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1); display: block; width: 80px; padding: 7px 0; font-size: 13px; font-weight: bold; color: #0044aa; margin-left: auto; background: linear-gradient(to bottom, #ffffff, #eaf4ff); border: 1px solid rgba(0, 100, 200, 0.3); border-radius: 6px; cursor: pointer; font-family: inherit; }
+        .wifi-window.minimized .wifi-btn { width: 60px; padding: 5px 0; font-size: 12px; }
+
+        .wifi-btn:hover { background: linear-gradient(to bottom, #eaf6fd, #cce8ff); border-color: #56aaff; }
     </style>
 </head>
 <body>
 
-    <!-- 전달해주신 파일명 유지 -->
     <div class="desktop-icons">
         <div class="desktop-icon">
             <img src="joo.png" alt="Joo" class="desktop-icon-img">
@@ -340,24 +321,25 @@
         </div>
     </div>
 
-    <div class="window">
+    <div class="window" id="camera-window" style="display: none;">
         <div class="title-bar">
-            <span></span>
+            <span id="camera-title"></span>
             <div class="window-controls">
                 <div></div>
                 <div></div>
-                <div class="close-btn"></div>
+                <div class="close-btn" id="close-camera"></div>
             </div>
         </div>
 
         <div class="content-area">
             <div id="audio-hint">💡 시스템 사운드 활성화를 위해 화면을 한 번 클릭하세요.</div>
             <video id="video" autoplay playsinline></video>
+            <!-- ★ 가로가 넓은 16:9 캔버스로 수정 -->
             <canvas id="canvas" width="1280" height="720"></canvas>
         </div>
     </div>
 
-    <div class="wifi-window">
+    <div class="wifi-window" id="wifi-window">
         <div class="wifi-title">무선 네트워크 연결</div>
         <div class="wifi-content">
             <div class="wifi-network-name">
@@ -378,6 +360,54 @@
         document.body.addEventListener('click', () => {
             document.getElementById('audio-hint').style.opacity = '0';
             setTimeout(() => { document.getElementById('audio-hint').style.display = 'none'; }, 300);
+        });
+
+        const memberMentions = {
+            'Jooeun': {
+                left:  ['안녕하세요', '저는', '기획자', '주은입니다'],
+                right: ['우리는', '웨일', '연세대', '팀원']
+            },
+            'Daewoong': {
+                left:  ['반갑습니다', '저는', '개발자', '대웅입니다'],
+                right: ['우리는', '웨일', '연세대', '팀원']
+            },
+            'Yunseo': {
+                left:  ['안녕하세요', '저는', '마케터', '윤서입니다'],
+                right: ['우리는', '웨일', '연세대', '팀원']
+            },
+            'Sua': {
+                left:  ['안녕하세요', '저는', '디자이너', '수아입니다'],
+                right: ['우리는', '웨일', '연세대', '팀원']
+            },
+            'Junha': {
+                left:  ['반갑습니다', '저는', 'PM', '준하입니다'],
+                right: ['우리는', '웨일', '연세대', '팀원']
+            }
+        };
+
+        let currentSelectedMember = 'Jooeun'; 
+
+        const icons = document.querySelectorAll('.desktop-icon');
+        const cameraWindow = document.getElementById('camera-window');
+        const cameraTitle = document.getElementById('camera-title');
+        const closeCameraBtn = document.getElementById('close-camera');
+        const wifiWindow = document.getElementById('wifi-window'); 
+
+        icons.forEach(icon => {
+            icon.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const iconName = icon.querySelector('span').innerText;
+                cameraTitle.innerText = iconName; 
+                currentSelectedMember = iconName; 
+                cameraWindow.style.display = 'block'; 
+                
+                wifiWindow.classList.add('minimized');
+            });
+        });
+
+        closeCameraBtn.addEventListener('click', () => {
+            cameraWindow.style.display = 'none'; 
+            wifiWindow.classList.remove('minimized');
         });
 
         const videoElement = document.getElementById('video');
@@ -402,15 +432,11 @@
         let lastPrayingDetectTime = 0;
 
         const audioFiles = {
-            '안녕하세요': 'hello',
-            '제 이름은': 'myname',
-            '저는': 'iam',
-            '입니다': 'imnida',
-            '우리는': 'we',
-            '웨일': 'whale',
-            '연세대': 'yonsei',
-            'WY-FI': 'wyfi',
-            '연결하는': 'connect'
+            '우리는': 'we', '웨일': 'whale', '연세대': 'yonsei', '팀원': 'team',
+            'WY-FI': 'wyfi', '연결하는': 'connect',
+            '안녕하세요': 'hello', '반갑습니다': 'nicetomeetyou', '저는': 'iam',
+            '기획자': 'planner', '개발자': 'developer', '마케터': 'marketer', '디자이너': 'designer', 'PM': 'pm',
+            '주은입니다': 'jooeun', '대웅입니다': 'daewoong', '윤서입니다': 'yunseo', '수아입니다': 'sua', '준하입니다': 'junha'
         };
 
         const preloadedAudios = {};
@@ -433,6 +459,18 @@
             const isPinkyOpen = landmarks[20].y < landmarks[18].y;
 
             return { isThumbOpen, isIndexOpen, isMiddleOpen, isRingOpen, isPinkyOpen };
+        }
+
+        function checkPinches(landmarks) {
+            const thumbTip = landmarks[4];
+            const pinchThreshold = 0.06; 
+
+            return {
+                thumbAndIndex: getDistance(thumbTip, landmarks[8]) < pinchThreshold,
+                thumbAndMiddle: getDistance(thumbTip, landmarks[12]) < pinchThreshold,
+                thumbAndRing: getDistance(thumbTip, landmarks[16]) < pinchThreshold,
+                thumbAndPinky: getDistance(thumbTip, landmarks[20]) < pinchThreshold
+            };
         }
 
         function drawMintCircle(ctx, x, y, radius) {
@@ -459,7 +497,7 @@
         }
 
         const BUBBLE_COUNT = 5;
-        const BUBBLE_SIZE = 220;
+        const BUBBLE_SIZE = 180;
         const bubbles = [];
 
         for (let i = 0; i < BUBBLE_COUNT; i++) {
@@ -469,16 +507,16 @@
             
             bubbles.push({
                 el: bEl,
-                x: Math.random() * (window.innerWidth - BUBBLE_SIZE), 
-                y: Math.random() * (window.innerHeight - BUBBLE_SIZE),
+                x: Math.random() * (document.body.clientWidth - BUBBLE_SIZE), 
+                y: Math.random() * (document.body.clientHeight - BUBBLE_SIZE),
                 vx: (Math.random() - 0.5) * 4,
                 vy: (Math.random() - 0.5) * 4
             });
         }
 
         function animateBubbles() {
-            const cw = window.innerWidth;
-            const ch = window.innerHeight;
+            const cw = document.body.clientWidth;
+            const ch = document.body.clientHeight;
 
             bubbles.forEach(b => {
                 b.x += b.vx;
@@ -516,9 +554,9 @@
             canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
             canvasCtx.restore();
 
-            let fullOpenHandsCount = 0; 
             const now = Date.now();
             const handsData = [];
+            let isLeftFistActive = false; 
 
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 
@@ -531,6 +569,8 @@
                     
                     if (wristDist < 0.25 && palmDist < 0.25) {
                         lastPrayingDetectTime = now;
+                    } else if (wristDist > 0.3 || palmDist > 0.3) {
+                        lastPrayingDetectTime = 0;
                     }
                 }
                 
@@ -540,54 +580,51 @@
                     const landmarks = results.multiHandLandmarks[i];
                     const handedness = results.multiHandedness[i].label; 
                     const fingers = checkFingers(landmarks);
+                    const pinches = checkPinches(landmarks); 
 
-                    const isAllFingersOpen = fingers.isThumbOpen && fingers.isIndexOpen && fingers.isMiddleOpen && fingers.isRingOpen && fingers.isPinkyOpen;
-                    if (isAllFingersOpen) fullOpenHandsCount++;
+                    const isFist = !fingers.isThumbOpen && !fingers.isIndexOpen && !fingers.isMiddleOpen && !fingers.isRingOpen && !fingers.isPinkyOpen;
+                    
+                    if (handedness === 'Left' && isFist) {
+                        isLeftFistActive = true;
+                    }
 
-                    handsData.push({ landmarks, handedness, fingers, isAllFingersOpen });
+                    handsData.push({ landmarks, handedness, fingers, pinches, isFist });
                 }
 
                 for (const hand of handsData) {
                     const mapX = (x) => (1 - x) * canvasElement.width;
                     const mapY = (y) => y * canvasElement.height;
                     
-                    const fingerTips = [
-                        { state: hand.fingers.isThumbOpen, index: 4 },
-                        { state: hand.fingers.isIndexOpen, index: 8 },
-                        { state: hand.fingers.isMiddleOpen, index: 12 },
-                        { state: hand.fingers.isRingOpen, index: 16 },
-                        { state: hand.fingers.isPinkyOpen, index: 20 },
-                    ];
+                    const pinchedIndices = [];
+                    if (hand.pinches.thumbAndIndex) pinchedIndices.push(4, 8);
+                    else if (hand.pinches.thumbAndMiddle) pinchedIndices.push(4, 12);
+                    else if (hand.pinches.thumbAndRing) pinchedIndices.push(4, 16);
+                    else if (hand.pinches.thumbAndPinky) pinchedIndices.push(4, 20);
 
-                    for (const tip of fingerTips) {
-                        if (tip.state) {
-                            const tipLandmark = hand.landmarks[tip.index];
-                            drawMintCircle(canvasCtx, mapX(tipLandmark.x), mapY(tipLandmark.y), TIP_CIRCLE_RADIUS);
-                        }
+                    for (const idx of pinchedIndices) {
+                        const tipLandmark = hand.landmarks[idx];
+                        drawMintCircle(canvasCtx, mapX(tipLandmark.x), mapY(tipLandmark.y), TIP_CIRCLE_RADIUS * 1.5);
                     }
 
                     let rawText = "";
-
-                    const onlyThumb = hand.fingers.isThumbOpen && !hand.fingers.isIndexOpen && !hand.fingers.isMiddleOpen && !hand.fingers.isRingOpen && !hand.fingers.isPinkyOpen;
-                    const onlyIndex = !hand.fingers.isThumbOpen && hand.fingers.isIndexOpen && !hand.fingers.isMiddleOpen && !hand.fingers.isRingOpen && !hand.fingers.isPinkyOpen;
-                    const onlyPinky = !hand.fingers.isThumbOpen && !hand.fingers.isIndexOpen && !hand.fingers.isMiddleOpen && !hand.fingers.isRingOpen && hand.fingers.isPinkyOpen;
-                    const thumbAndIndex = hand.fingers.isThumbOpen && hand.fingers.isIndexOpen && !hand.fingers.isMiddleOpen && !hand.fingers.isRingOpen && !hand.fingers.isPinkyOpen;
+                    
+                    const mentions = memberMentions[currentSelectedMember] || memberMentions['Jooeun'];
 
                     if (isPraying) {
                         rawText = "연결하는";
-                    } else if (fullOpenHandsCount === 2) {
-                        rawText = "WY-FI";
                     } else {
                         if (hand.handedness === 'Left') {
-                            if (hand.isAllFingersOpen) rawText = "안녕하세요";
-                            else if (onlyThumb) rawText = "제 이름은";
-                            else if (onlyIndex) rawText = "저는";
-                            else if (onlyPinky) rawText = "입니다";
+                            if (hand.isFist) rawText = "WY-FI";
+                            else if (hand.pinches.thumbAndIndex) rawText = mentions.left[0];
+                            else if (hand.pinches.thumbAndMiddle) rawText = mentions.left[1];
+                            else if (hand.pinches.thumbAndRing) rawText = mentions.left[2];
+                            else if (hand.pinches.thumbAndPinky) rawText = mentions.left[3];
                         } 
                         else if (hand.handedness === 'Right') {
-                            if (hand.isAllFingersOpen) rawText = "우리는";
-                            else if (onlyThumb) rawText = "웨일";
-                            else if (thumbAndIndex) rawText = "연세대";
+                            if (hand.pinches.thumbAndIndex) rawText = mentions.right[0];
+                            else if (hand.pinches.thumbAndMiddle) rawText = mentions.right[1];
+                            else if (hand.pinches.thumbAndRing) rawText = mentions.right[2];
+                            else if (hand.pinches.thumbAndPinky) rawText = mentions.right[3];
                         }
                     }
 
@@ -625,7 +662,7 @@
                 }
             }
 
-            const isWyFiCondition = (fullOpenHandsCount === 2 && !(now - lastPrayingDetectTime < 1000));
+            const isWyFiCondition = (isLeftFistActive && !isPraying);
             if (isWyFiCondition && !wasBothHandsOpen) {
                 wave.active = true;
                 wave.progress = 0;
@@ -675,6 +712,7 @@
             onFrame: async () => {
                 await hands.send({image: videoElement});
             },
+            // ★ 카메라 캡처 해상도도 넓은 가로 시야(16:9)로 변경
             width: 1280,
             height: 720
         });
