@@ -865,7 +865,7 @@
                     }
 
                     for (const hand of handsData) {
-                        const mapX = (x) => (1 - x) * canvasElement.width;
+                        const mapX = (x) => x * canvasElement.width;
                         const mapY = (y) => y * canvasElement.height;
                         
                         const pinchedIndices = [];
