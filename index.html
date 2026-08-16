@@ -438,9 +438,50 @@
         </div>
     </div>
 
-    <div class="taskbar">
-        <img src="whale.png" alt="Whale Start" class="start-button">
+   <div class="taskbar">
+        <div class="taskbar-left">
+            <img src="whale.png" alt="Whale Start" class="start-button">
+        </div>
+        <div class="taskbar-right">
+            <div class="systray-icons">
+                <span class="systray-icon">📶</span>
+                <span class="systray-icon">🔊</span>
+                <span class="systray-icon">🔋</span>
+            </div>
+            <div class="taskbar-time">
+                <div id="time-text">오후 12:00</div>
+                <div id="date-text">2026-08-16</div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        document.body.addEventListener('click', () => {
+            document.getElementById('audio-hint').style.opacity = '0';
+            setTimeout(() => { document.getElementById('audio-hint').style.display = 'none'; }, 300);
+        });
+
+        // ==========================================
+        // ★ 실시간 시계 작동 로직
+        // ==========================================
+        function updateSystemTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const ampm = hours >= 12 ? '오후' : '오전';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; // 0시는 12시로 표기
+            
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            
+            document.getElementById('time-text').innerText = `${ampm} ${hours}:${minutes}`;
+            document.getElementById('date-text').innerText = `${year}-${month}-${day}`;
+        }
+        setInterval(updateSystemTime, 1000);
+        updateSystemTime();
 
     <script>
         document.body.addEventListener('click', () => {
