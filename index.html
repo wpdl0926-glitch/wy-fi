@@ -483,12 +483,6 @@
         setInterval(updateSystemTime, 1000);
         updateSystemTime();
 
-    <script>
-        document.body.addEventListener('click', () => {
-            document.getElementById('audio-hint').style.opacity = '0';
-            setTimeout(() => { document.getElementById('audio-hint').style.display = 'none'; }, 300);
-        });
-
         // ==========================================
         // ★ 와이파이 보안코드 입력 로직 추가
         // ==========================================
@@ -812,9 +806,11 @@
                         
                         if (wristDist < 0.25 && palmDist < 0.25) {
                             lastPrayingDetectTime = now;
-                        } else if (wristDist > 0.3 || palmDist > 0.3) {
-                            lastPrayingDetectTime = 0;
+                            isPraying = true;
+                        } else {
                             isPraying = (now - lastPrayingDetectTime < 1000);
+                        }
+                    }
 
                     for (let i = 0; i < results.multiHandLandmarks.length; i++) {
                         const landmarks = results.multiHandLandmarks[i];
