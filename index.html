@@ -756,7 +756,8 @@
 
                 const now = Date.now();
                 const handsData = [];
-                let isLeftFistActive = false; 
+                let isLeftFistActive = false;
+                let isPraying = false;
 
                 if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                     
@@ -771,10 +772,7 @@
                             lastPrayingDetectTime = now;
                         } else if (wristDist > 0.3 || palmDist > 0.3) {
                             lastPrayingDetectTime = 0;
-                        }
-                    }
-                    
-                    const isPraying = (now - lastPrayingDetectTime < 1000);
+                            isPraying = (now - lastPrayingDetectTime < 1000);
 
                     for (let i = 0; i < results.multiHandLandmarks.length; i++) {
                         const landmarks = results.multiHandLandmarks[i];
