@@ -809,7 +809,7 @@
         });
         
         hands.setOptions({
-            selfieMode: true,
+            selfieMode: false,
             maxNumHands: 2,           
             modelComplexity: 1,
             minDetectionConfidence: 0.5, 
@@ -821,8 +821,6 @@
                 canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
                 
                 canvasCtx.save();
-                canvasCtx.scale(-1, 1);
-                canvasCtx.translate(-canvasElement.width, 0);
                 canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
                 canvasCtx.restore();
 
