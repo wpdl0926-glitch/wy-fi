@@ -702,19 +702,42 @@
         let lastPrayingDetectTime = 0;
 
         const audioFiles = {
-            '우리는': 'we', '웨일': 'whale', '연세대': 'yonsei', '팀원': 'team',
-            'WY-FI': 'wyfi', '연결하는': 'connect',
-            '안녕하세요': 'hello', '반갑습니다': 'nicetomeetyou', '저는': 'iam',
-            '기획자': 'planner', '개발자': 'developer', '마케터': 'marketer', '디자이너': 'designer', 'PM': 'pm',
-            '주은입니다': 'jooeun', '대웅입니다': 'daewoong', '윤서입니다': 'yunseo', '수아입니다': 'sua', '준하입니다': 'junha'
+            'Jooeun': {
+                '안녕하세요': 'joo_hello', '저는': 'joo_iam', '기획자': 'joo_planner', '김주은': 'joo_name',
+                '우리는': 'joo_we', '섬세한': 'joo_delicate', '연세대': 'joo_yonsei', '입니다': 'joo_imnida',
+                'WY-FI': 'joo_wyfi', '연결하는': 'joo_connect'
+            },
+            'Daewoong': {
+                '반갑습니다': 'dae_nice', '저는': 'dae_iam', '개발자': 'dae_dev', '김대웅': 'dae_name',
+                '논리적인': 'dae_logical', '웨일과': 'dae_whale', '팀': 'dae_team', '입니다': 'dae_imnida',
+                'WY-FI': 'dae_wyfi', '연결하는': 'dae_connect'
+            },
+            'Yunseo': {
+                '안녕하세요': 'yun_hello', '저는': 'yun_iam', 'PM': 'yun_pm', '이윤서': 'yun_name',
+                '우리는': 'yun_we', '전략적인': 'yun_strategic', '연결하는': 'yun_connect_right', '입니다': 'yun_imnida',
+                'WY-FI': 'yun_wyfi', '연결하는': 'yun_connect'
+            },
+            'Sua': {
+                '안녕하세요': 'sua_hello', '저는': 'sua_iam', '마케터': 'sua_marketer', '수아입니다': 'sua_name',
+                '우리는': 'sua_we', '감각적인': 'sua_sensuous', '연세대를': 'sua_yonsei2', 'WY-Fi': 'sua_wyfi_right',
+                'WY-FI': 'sua_wyfi', '연결하는': 'sua_connect'
+            },
+            'Junha': {
+                '반갑습니다': 'jun_nice', '저는': 'jun_iam', '소통하는': 'jun_com', '디자이너': 'jun_designer', '채준하입니다': 'jun_name',
+                '우리는': 'jun_we', '웨일': 'jun_whale', '연세대': 'jun_yonsei', '팀원': 'jun_team',
+                'WY-FI': 'jun_wyfi', '연결하는': 'jun_connect'
+            }
         };
 
         const preloadedAudios = {};
-        for (const [text, fileName] of Object.entries(audioFiles)) {
-            const audio = new Audio(`${fileName}.m4a`);
-            audio.preload = 'auto'; 
-            audio.volume = 1.0;
-            preloadedAudios[text] = audio;
+        for (const member in audioFiles) {
+            preloadedAudios[member] = {}; // 멤버별 빈 보관함 생성
+            for (const [text, fileName] of Object.entries(audioFiles[member])) {
+                const audio = new Audio(`${fileName}.m4a`);
+                audio.preload = 'auto'; 
+                audio.volume = 1.0;
+                preloadedAudios[member][text] = audio;
+            }
         }
 
         function getDistance(p1, p2) {
@@ -757,8 +780,13 @@
             }
             lastPlayedTime[text] = now;
             
-            const audio = preloadedAudios[text];
-            if (!audio) return; 
+            // ★ 현재 바탕화면에서 선택된 멤버의 폴더(보관함)에서 해당 단어의 오디오를 찾음
+            let audio = null;
+            if (preloadedAudios[currentSelectedMember] && preloadedAudios[currentSelectedMember][text]) {
+                audio = preloadedAudios[currentSelectedMember][text];
+            }
+
+            if (!audio) return; // 파일이 연결되어 있지 않으면 에러 없이 조용히 넘어감
 
             audio.currentTime = 0;
             let playPromise = audio.play();
